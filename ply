@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+  <title>نمونه استفاده از پلیر Plyr با آیکون های پخش/توقف و کنترل صدا</title>
+  <link rel="stylesheet" href="https://cdn.plyr.io/3.6.4/plyr.css" />
+  
+</head>
+<body>
+  <video id="player" playsinline>
+    <!-- اینجا به طور پویا ویدیو قرار خواهد گرفت -->
+  </video>
+
+  <script src="https://cdn.plyr.io/3.6.4/plyr.js"></script>
+  <script>
+    const videos = [
+      <?php
+      // مسیر پوشه حاوی ویدیوها
+      $videosDirectory = 'live';
+
+      // خواندن فهرست فایل‌های ویدیویی در پوشه
+      $videos = scandir($videosDirectory);
+
+      // حذف عناصر غیرمجاز از لیست ویدیوها
+      $allowedExtensions = array('mp4', 'webm', 'ogg');
+      $videos = array_diff($videos, array('.', '..'));
+      $videos = array_filter($videos, function ($file) use ($allowedExtensions) {
+        $extension = pathinfo($file, PATHINFO_EXTENSION);
+        return in_array($extension, $allowedExtensions);
+      });
+
+      // تولید رشته‌های جاوااسکریپت برای ویدیوها
+      $videoStrings = array_map(function ($video) use ($videosDirectory) {
+        return '{ src: "' . $videosDirectory . '/' . $video . '", type: "video/mp4" }';
+      }, $videos);
+
+      // نمایش ویدیوها به صورت رشته جاوااسکریپت
+      echo implode(',', $videoStrings);
+      ?>
+    ];
+
+    const player = new Plyr('#player', {
+      controls: ['play', 'mute', 'volume']
+    });
+    let currentVideoIndex = 0;
+
+    function playNextVideo() {
+      if (currentVideoIndex < videos.length) {
+        const nextVideo = videos[currentVideoIndex];
+        player.source = {
+          type: 'video',
+          sources: [nextVideo]
+        };
+        player.play();
+        currentVideoIndex++;
+      }
+    }
+
+    player.on('ended', function() {
+      playNextVideo();
+    });
+
+    playNextVideo();
+  </script>
+</body>
+</html>
